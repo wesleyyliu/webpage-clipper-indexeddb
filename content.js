@@ -8,20 +8,43 @@ function extractTextContent(doc) {
   // Get all text nodes from the body
   const bodyText = doc.body.innerText || doc.body.textContent || '';
   
-  // Limit to first 100 words
+  // Count total words
   const words = bodyText.split(/\s+/);
-  const firstHundredWords = words.slice(0, 100).join(' ');
+  const wordCount = words.length;
   
-  return firstHundredWords + (words.length > 100 ? '...' : '');
+  // Calculate estimated reading time (average 200 words per minute)
+  const readingTime = Math.ceil(wordCount / 200);
+  
+  // Limit to first 100 words for content preview
+  const firstHundredWords = words.slice(0, 100).join(' ') + (words.length > 100 ? '...' : '');
+  
+  return {
+    content: firstHundredWords,
+    wordCount: wordCount,
+    readingTime: readingTime
+  };
 }
 
 // Function to clip the current page
 function clipCurrentPage() {
+  // Get favicon URL (if available)
+  let faviconUrl = '';
+  const faviconLink = document.querySelector('link[rel="icon"], link[rel="shortcut icon"]');
+  if (faviconLink) {
+    faviconUrl = faviconLink.href;
+  }
+  
+  // Extract text content with metrics
+  const textData = extractTextContent(document);
+  
   const pageData = {
     title: document.title,
     url: window.location.href,
     timestamp: new Date().toISOString(),
-    content: extractTextContent(document)
+    content: textData.content,
+    favicon: faviconUrl,
+    wordCount: textData.wordCount,
+    readingTime: textData.readingTime
   };
   
   // Send the data to the background script
